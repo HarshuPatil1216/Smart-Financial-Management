@@ -11,12 +11,15 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
 
+  // बॅकएंडची मूळ URL (इथे एकदाच बदलली की सर्व ठिकाणी लागू होईल)
+  const API_BASE_URL = "https://smart-finance-backend-v2.onrender.com";
+
   // Savings Goal State
   const [savingsGoal] = useState({ name: "Emergency Fund", target: 50000 });
 
   const loadTransactions = async (userId) => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/history/${userId}`);
+      const res = await axios.get(`${API_BASE_URL}/api/history/${userId}`);
       setTransactions(res.data);
     } catch (err) { 
       console.error("Error loading data from backend."); 
@@ -26,46 +29,52 @@ const App = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:8080/api/users/login', {
+      const res = await axios.post(`${API_BASE_URL}/api/users/login`, {
         username: e.target.username.value,
         password: e.target.password.value
       });
       setUser(res.data);
       loadTransactions(res.data.userId);
       setView('dashboard');
-    } catch (err) { alert("Login Failed! Please check credentials."); }
+    } catch (err) { 
+      alert("Login Failed! Please check credentials."); 
+    }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8080/api/users/register', {
+      await axios.post(`${API_BASE_URL}/api/users/register`, {
         username: e.target.username.value,
         password: e.target.password.value,
         email: e.target.email.value
       });
       alert("Registration Successful! Please login.");
       setView('login');
-    } catch (err) { alert("Registration Failed!"); }
+    } catch (err) { 
+      alert("Registration Failed!"); 
+    }
   };
 
   const handleUpdateBudget = async () => {
     if (!tempLimit || tempLimit <= 0) return alert("Enter valid amount");
     try {
-      const res = await axios.post('http://localhost:8080/api/users/update-budget', {
+      const res = await axios.post(`${API_BASE_URL}/api/users/update-budget`, {
         user_id: user.userId,
         budget_limit: parseFloat(tempLimit)
       });
       setUser(res.data);
       alert("Budget Updated! ✅");
       setTempLimit("");
-    } catch (err) { alert("Update failed."); }
+    } catch (err) { 
+      alert("Update failed."); 
+    }
   };
 
   const handleSaveTransaction = async () => {
     if (!newEntry.title || !newEntry.amount) return alert("Fill all details");
     try {
-      await axios.post('http://localhost:8080/api/add', {
+      await axios.post(`${API_BASE_URL}/api/add`, {
         user_id: user.userId,
         description: newEntry.title,
         amount: parseFloat(newEntry.amount),
@@ -75,15 +84,19 @@ const App = () => {
       loadTransactions(user.userId);
       setView('dashboard');
       setNewEntry({ title: '', amount: '', type: 'Expense', category: 'General' });
-    } catch (err) { alert("Save failed."); }
+    } catch (err) { 
+      alert("Save failed."); 
+    }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Delete this record?")) {
       try {
-        await axios.delete(`http://localhost:8080/api/transactions/${id}`); 
+        await axios.delete(`${API_BASE_URL}/api/transactions/${id}`); 
         loadTransactions(user.userId);
-      } catch (err) { alert("Delete failed."); }
+      } catch (err) { 
+        alert("Delete failed."); 
+      }
     }
   };
 
@@ -103,7 +116,6 @@ const App = () => {
   const totalExpense = transactions.filter(t => t.type === 'Expense').reduce((a, b) => a + Number(b.amount), 0);
   const balance = totalIncome - totalExpense;
   const currentBudget = user?.budgetLimit || 5000;
-  const budgetProgress = (totalExpense / currentBudget) * 100;
   const savingsProgress = Math.min((balance / savingsGoal.target) * 100, 100);
   const remainingForGoal = Math.max(savingsGoal.target - balance, 0);
 
@@ -139,7 +151,7 @@ const App = () => {
     aiBadge: { background: 'linear-gradient(90deg, #818cf8, #c084fc)', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold' }
   };
 
-  // 1. Explore View (Fix: Removed Dashboard Header from here)
+  // 1. Explore View
   if (view === 'explore') {
     return (
       <div style={styles.wrapper}>
@@ -237,7 +249,7 @@ const App = () => {
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #1f2937' }}>
                       <div>{t.description} <small style={{ color: '#64748b' }}>({t.category})</small></div>
                       <div style={{ color: t.type === 'Income' ? '#10b981' : '#ef4444' }}>
-                        ₹{t.amount} <button onClick={() => handleDelete(t.id)} style={{ color: 'grey', background: 'none', border: 'none', cursor: 'pointer' }}>x</button>
+                        ₹{t.amount} <button onClick={() => handleDelete(t.id)} style={{ color: 'grey', background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px' }}>x</button>
                       </div>
                     </div>
                   ))}
