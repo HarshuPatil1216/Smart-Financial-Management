@@ -38,6 +38,10 @@ const DemoModal = ({ show, onClose }) => {
 };
 
 const App = () => {
+  // --- States for expemonth ---
+  const [monthlyEntries, setMonthlyEntries] = useState([]);
+  const [newMonthly, setNewMonthly] = useState({ person: '', amount: '', type: 'To Give' });
+
   const [view, setView] = useState('explore'); 
   const [user, setUser] = useState(null); 
   const [transactions, setTransactions] = useState([]);
@@ -49,6 +53,16 @@ const App = () => {
 
   const API_BASE_URL = "https://smart-finance-backend-knxx.onrender.com";
   const exploreHeroImg = "https://images.unsplash.com/photo-1593640495253-23196b27a87f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80";
+
+  // --- Effects for expemonth persistence ---
+  useEffect(() => {
+    const savedEntries = localStorage.getItem('expemonth');
+    if (savedEntries) setMonthlyEntries(JSON.parse(savedEntries));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('expemonth', JSON.stringify(monthlyEntries));
+  }, [monthlyEntries]);
 
   const loadTransactions = async (userId) => {
     try {
@@ -103,14 +117,11 @@ const App = () => {
     if (!newEntry.title || !newEntry.amount) return alert("Fill details.");
     if (!user) { setView('login'); return; }
 
-    // --- New Negative Balance Prevention Logic ---
     const transactionAmount = parseFloat(newEntry.amount);
-    
     if (newEntry.type === 'Expense' && transactionAmount > balance) {
       alert("Insufficient Funds! Your current balance is ₹" + balance);
-      return; // Stop the execution here
+      return;
     }
-    // ---------------------------------------------
 
     setIsSubmitting(true);
     try {
@@ -124,11 +135,19 @@ const App = () => {
       await loadTransactions(user.userId);
       setView('dashboard');
       setNewEntry({ title: '', amount: '', type: 'Expense', category: 'General' });
-    } catch (err) { 
-      alert("Error saving transaction."); 
-    } finally { 
-      setIsSubmitting(false); 
-    }
+    } catch (err) { alert("Error saving transaction."); } finally { setIsSubmitting(false); }
+  };
+
+  // --- Logic for expemonth ---
+  const handleSaveMonthly = () => {
+    if (!newMonthly.person || !newMonthly.amount) return alert("Please fill all details");
+    const entry = { ...newMonthly, id: Date.now() };
+    setMonthlyEntries([...monthlyEntries, entry]);
+    setNewMonthly({ person: '', amount: '', type: 'To Give' });
+  };
+
+  const deleteMonthlyEntry = (id) => {
+    setMonthlyEntries(monthlyEntries.filter(e => e.id !== id));
   };
 
   const handleDelete = async (id) => {
@@ -177,7 +196,6 @@ const App = () => {
     input: { width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '8px', background: '#0f172a', color: 'white', border: '1px solid #334155', outline: 'none' }
   };
 
-  // --- PUBLIC NAVIGATION COMPONENT ---
   const PublicNav = () => (
     <nav style={styles.navbar}>
       <h2 style={{ color: '#6366f1', margin: 0, cursor: 'pointer' }} onClick={() => setView('explore')}>FinTrace</h2>
@@ -190,7 +208,6 @@ const App = () => {
     </nav>
   );
 
-  // 1. EXPLORE VIEW
   if (view === 'explore') {
     return (
       <div style={styles.wrapper}>
@@ -243,7 +260,6 @@ const App = () => {
     );
   }
 
-  // 2. DETAILED FEATURES VIEW
   if (view === 'features') {
     return (
       <div style={styles.wrapper}>
@@ -255,19 +271,12 @@ const App = () => {
               <h2 style={{color: '#6366f1'}}>🔄 Real-time Cloud Synchronization</h2>
               <p style={{fontSize: '18px', lineHeight: '1.6', color: '#94a3b8'}}>
                 FinTrace uses a powerful REST API backend to ensure that every transaction you add is instantly available across all devices. 
-                Powered by PostgreSQL for robust data integrity and hosted on Render for high availability.
               </p>
             </div>
             <div style={styles.card}>
               <h2 style={{color: '#6366f1'}}>🤖 Smart AI Spending Forecast</h2>
               <p style={{fontSize: '18px', lineHeight: '1.6', color: '#94a3b8'}}>
-                Our system analyzes your daily burn rate. By dividing total monthly expenses by the elapsed days, we provide a 30-day projection to help you stay within budget limits.
-              </p>
-            </div>
-            <div style={styles.card}>
-              <h2 style={{color: '#6366f1'}}>📊 Interactive Data Visualization</h2>
-              <p style={{fontSize: '18px', lineHeight: '1.6', color: '#94a3b8'}}>
-                Utilizing Recharts, our dashboard provides dynamic Pie Charts and progress bars that change color as you approach your spending thresholds.
+                Our system analyzes your daily burn rate to help you stay within budget limits.
               </p>
             </div>
           </div>
@@ -279,7 +288,6 @@ const App = () => {
     );
   }
 
-  // 3. LOGIN / REGISTER VIEW
   if (view === 'login' || view === 'register') {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: '#030712' }}>
@@ -295,14 +303,12 @@ const App = () => {
             <p onClick={() => setView(view === 'login' ? 'register' : 'login')} style={{ textAlign: 'center', cursor: 'pointer', marginTop: '20px', color: '#94a3b8' }}>
                 {view === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Login"}
             </p>
-            <button onClick={() => setView('explore')} style={{width: '100%', background: 'none', border: 'none', color: '#6366f1', marginTop: '15px', cursor: 'pointer'}}>Back to Home</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // 4. DASHBOARD VIEW
   return (
     <div style={{ ...styles.wrapper, display: 'flex' }}>
       <div style={styles.sidebar}>
@@ -372,6 +378,64 @@ const App = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
+            </div>
+
+            {/* --- Monthly Planner Section (expemonth) --- */}
+            <div style={{ ...styles.card, marginTop: '40px' }}>
+              <h2 style={{ color: '#6366f1' }}>Monthly Planner (expemonth)</h2>
+              <p style={{ color: '#94a3b8' }}>Track who you need to pay or receive money from this month.</p>
+              
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                <input 
+                  style={{ ...styles.input, flex: 1, marginBottom: 0 }} 
+                  placeholder="Person Name" 
+                  value={newMonthly.person}
+                  onChange={(e) => setNewMonthly({ ...newMonthly, person: e.target.value })}
+                />
+                <input 
+                  style={{ ...styles.input, width: '150px', marginBottom: 0 }} 
+                  type="number" 
+                  placeholder="Amount" 
+                  value={newMonthly.amount}
+                  onChange={(e) => setNewMonthly({ ...newMonthly, amount: e.target.value })}
+                />
+                <select 
+                  style={{ ...styles.input, width: '150px', marginBottom: 0 }}
+                  value={newMonthly.type}
+                  onChange={(e) => setNewMonthly({ ...newMonthly, type: e.target.value })}
+                >
+                  <option value="To Give">To Give</option>
+                  <option value="To Receive">To Receive</option>
+                </select>
+                <button style={styles.btn} onClick={handleSaveMonthly}>Save Entry</button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
+                {monthlyEntries.map(entry => (
+                  <div key={entry.id} style={{ 
+                    padding: '15px', 
+                    background: '#1f2937', 
+                    borderRadius: '10px', 
+                    borderLeft: `5px solid ${entry.type === 'To Give' ? '#ef4444' : '#10b981'}`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <div>
+                      <h4 style={{ margin: 0 }}>{entry.person}</h4>
+                      <small style={{ color: entry.type === 'To Give' ? '#f87171' : '#34d399' }}>
+                        {entry.type}: ₹{entry.amount}
+                      </small>
+                    </div>
+                    <button 
+                      onClick={() => deleteMonthlyEntry(entry.id)}
+                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}
