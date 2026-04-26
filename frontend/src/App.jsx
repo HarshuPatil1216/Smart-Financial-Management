@@ -102,19 +102,33 @@ const App = () => {
   const handleSaveTransaction = async () => {
     if (!newEntry.title || !newEntry.amount) return alert("Fill details.");
     if (!user) { setView('login'); return; }
+
+    // --- New Negative Balance Prevention Logic ---
+    const transactionAmount = parseFloat(newEntry.amount);
+    
+    if (newEntry.type === 'Expense' && transactionAmount > balance) {
+      alert("Insufficient Funds! Your current balance is ₹" + balance);
+      return; // Stop the execution here
+    }
+    // ---------------------------------------------
+
     setIsSubmitting(true);
     try {
       await axios.post(`${API_BASE_URL}/api/add`, {
         user_id: user.userId,
         description: newEntry.title,
-        amount: parseFloat(newEntry.amount),
+        amount: transactionAmount,
         type: newEntry.type,
         category: newEntry.category
       });
       await loadTransactions(user.userId);
       setView('dashboard');
       setNewEntry({ title: '', amount: '', type: 'Expense', category: 'General' });
-    } catch (err) { alert("Error."); } finally { setIsSubmitting(false); }
+    } catch (err) { 
+      alert("Error saving transaction."); 
+    } finally { 
+      setIsSubmitting(false); 
+    }
   };
 
   const handleDelete = async (id) => {
