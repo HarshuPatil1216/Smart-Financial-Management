@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 // --- Demo Video Section ---
 const DemoModal = ({ show, onClose }) => {
@@ -44,26 +44,22 @@ const App = () => {
   const [user, setUser] = useState(null); 
   const [transactions, setTransactions] = useState([]);
   const [monthlyEntries, setMonthlyEntries] = useState([]);
-  const [plannedTransactions, setPlannedTransactions] = useState([]); // नवीन: Planned Transactions साठी
+  const [plannedTransactions, setPlannedTransactions] = useState([]); 
   const [newMonthly, setNewMonthly] = useState({ person: '', amount: '', type: 'To Give', remarks: '' });
   const [newEntry, setNewEntry] = useState({ title: '', amount: '', type: 'Expense', category: 'General' });
-  const [tempLimit, setTempLimit] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  // Settings States
   const [appSettings, setAppSettings] = useState({ currency: 'INR (₹)', theme: 'Dark' });
 
-  const API_BASE_URL = "https://smart-finance-backend-knxx.onrender.com";
+  // Backend URL - /api एकदाच वापरला आहे जेणेकरून कॉल करताना चुका होणार नाहीत
+  const API_BASE_URL = "https://smart-finance-backend-knxx.onrender.com/api";
   const heroBackground = "https://images.unsplash.com/photo-1593640495253-23196b27a87f?auto=format&fit=crop&w=1471&q=80";
 
   // --- Effects ---
   useEffect(() => {
     const dataFromStorage = localStorage.getItem('expemonth');
     if (dataFromStorage) setMonthlyEntries(JSON.parse(dataFromStorage));
-    
     const plannedData = localStorage.getItem('planned_tx');
     if (plannedData) setPlannedTransactions(JSON.parse(plannedData));
   }, []);
@@ -73,12 +69,12 @@ const App = () => {
     localStorage.setItem('planned_tx', JSON.stringify(plannedTransactions));
   }, [monthlyEntries, plannedTransactions]);
 
-  // --- API Calls ---
+  // --- API Calls (Fixed Connections) ---
   const loadAllTransactions = async (id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/history/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/history/${id}`);
       setTransactions(response.data || []);
-    } catch (error) { console.log("Server error while fetching history."); }
+    } catch (error) { console.log("Fetching history error."); }
   };
 
   const loginUser = async (e) => {
@@ -86,21 +82,21 @@ const App = () => {
     setIsSubmitting(true);
     const credentials = { username: e.target.username.value, password: e.target.password.value };
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/users/login`, credentials);
+      const res = await axios.post(`${API_BASE_URL}/users/login`, credentials);
       if (res.data && res.data.userId) {
         setUser(res.data);
         await loadAllTransactions(res.data.userId);
         setView('dashboard');
       }
-    } catch (err) { alert("Login Error: Check credentials or server."); }
+    } catch (err) { alert("Login failed! Check credentials."); }
     finally { setIsSubmitting(false); }
   };
 
   const saveNewTransaction = async () => {
-    if (!newEntry.title || !newEntry.amount) return alert("Fill all fields.");
+    if (!newEntry.title || !newEntry.amount) return alert("Fill all details.");
     setIsSubmitting(true);
     try {
-      await axios.post(`${API_BASE_URL}/api/add`, {
+      await axios.post(`${API_BASE_URL}/add`, {
         user_id: user.userId, description: newEntry.title, amount: parseFloat(newEntry.amount),
         type: newEntry.type, category: newEntry.category
       });
@@ -111,13 +107,11 @@ const App = () => {
     finally { setIsSubmitting(false); }
   };
 
-  // --- Planned Transactions Logic ---
   const addPlannedTx = () => {
-    const title = prompt("Enter Planned Expense Title (e.g. Rent, Fees):");
-    const amount = prompt("Enter Estimated Amount:");
+    const title = prompt("Enter Planned Title:");
+    const amount = prompt("Amount:");
     if (title && amount) {
-      const newPlan = { id: Date.now(), title, amount, date: new Date().toLocaleDateString() };
-      setPlannedTransactions([...plannedTransactions, newPlan]);
+      setPlannedTransactions([...plannedTransactions, { id: Date.now(), title, amount, date: new Date().toLocaleDateString() }]);
     }
   };
 
@@ -125,140 +119,38 @@ const App = () => {
   const totalIncome = transactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + Number(t.amount), 0);
   const totalExpense = transactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + Number(t.amount), 0);
   const netBalance = totalIncome - totalExpense;
-  const myLimit = user?.budget_limit || 0;
-  const budgetUsage = myLimit > 0 ? Math.min((totalExpense / myLimit) * 100, 100) : 0;
 
-  // --- Styling Section ---
-const styles = {
-  mainWrapper: { 
-    backgroundColor: '#020617', 
-    minHeight: '100vh', 
-    color: '#e2e8f0', 
-    fontFamily: 'system-ui, -apple-system, sans-serif' 
-  },
-  
-  // --- हा भाग अपडेट करा ---
-  navBar: { 
-    display: 'flex', 
-    justifyContent: 'space-between', 
-    padding: '10px 40px', 
-    background: 'rgba(15, 23, 42, 0.8)', 
-    borderBottom: '1px solid #1e293b', 
-    alignItems: 'center', 
-    position: 'fixed', 
-    width: '100%', 
-    top: 0, 
-    left: 0,
-    zIndex: 2000, 
-    backdropFilter: 'blur(10px)', 
-    boxSizing: 'border-box' 
-  },
-  
-  contentWrapper: {
-    paddingTop: '80px', 
-    minHeight: '100vh'
-  },
-  // -------------------------
-
-  commonCard: { 
-    backgroundColor: '#1e293b', 
-    padding: '25px', 
-    borderRadius: '15px', 
-    border: '1px solid #334155' 
-  },
-    menuButton: (active) => ({
-      width: '100%', padding: '15px', marginBottom: '8px', borderRadius: '12px',
-      border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 'bold',
-      background: active ? '#4f46e5' : 'transparent', color: active ? 'white' : '#94a3b8',
-      display: 'flex', alignItems: 'center', gap: '15px'
-    }),
-    commonCard: { 
-        backgroundColor: '#1e293b', padding: '25px', borderRadius: '15px', 
-        border: '1px solid #334155', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' 
-    },
+  // --- Styles ---
+  const styles = {
+    mainWrapper: { backgroundColor: '#020617', minHeight: '100vh', color: '#e2e8f0', fontFamily: 'sans-serif' },
+    navBar: { display: 'flex', justifyContent: 'space-between', padding: '15px 40px', background: 'rgba(15, 23, 42, 0.8)', borderBottom: '1px solid #1e293b', position: 'fixed', width: '100%', top: 0, zIndex: 2000, backdropFilter: 'blur(10px)', boxSizing: 'border-box' },
+    sidePanel: { width: isSidebarOpen ? '260px' : '80px', background: '#0f172a', borderRight: '1px solid #1e293b', display: 'flex', flexDirection: 'column', padding: '20px', transition: '0.3s', height: '100vh', position: 'sticky', top: 0 },
+    commonCard: { backgroundColor: '#1e293b', padding: '25px', borderRadius: '15px', border: '1px solid #334155' },
+    menuButton: (active) => ({ width: '100%', padding: '15px', marginBottom: '8px', borderRadius: '12px', border: 'none', textAlign: 'left', cursor: 'pointer', background: active ? '#4f46e5' : 'transparent', color: active ? 'white' : '#94a3b8', display: 'flex', gap: '15px', fontWeight: 'bold' }),
     inputBox: { width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '10px', background: '#020617', color: 'white', border: '1px solid #475569', boxSizing: 'border-box' },
     primaryBtn: { padding: '12px 25px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }
   };
 
-  // --- Views ---
- if (view === 'explore') {
+  // --- Render Views ---
+  if (view === 'explore') {
     return (
       <div style={styles.mainWrapper}>
         <DemoModal show={showDemoModal} onClose={() => setShowDemoModal(false)} />
-        
-        {/* --- नवीन Sticky Toolbar --- */}
-        <nav style={{
-          ...styles.navBar,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          zIndex: 2000,
-          background: 'rgba(15, 23, 42, 0.8)',
-          backdropFilter: 'blur(10px)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '15px 40px',
-          boxSizing: 'border-box',
-          borderBottom: '1px solid #1e293b'
-        }}>
-          <h2 style={{ color: '#6366f1', margin: 0, cursor: 'pointer' }} onClick={() => setView('explore')}>FinTrace</h2>
+        <nav style={styles.navBar}>
+          <h2 style={{ color: '#6366f1', margin: 0 }}>FinTrace</h2>
           <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
-            <span style={{ cursor: 'pointer', fontWeight: '500' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</span>
-            <span style={{ cursor: 'pointer', fontWeight: '500' }} onClick={() => setView('login')}>Login</span>
-            <button style={styles.primaryBtn} onClick={() => setView('login')}>Get Started</button>
+             <span onClick={() => setView('login')} style={{cursor:'pointer'}}>Login</span>
+             <button style={styles.primaryBtn} onClick={() => setView('login')}>Get Started</button>
           </div>
         </nav>
-
-        {/* --- स्क्रोल होणारा कंटेंट --- */}
-        <div style={{ paddingTop: '80px' }}>
-          <header style={{
-            ...styles.landingPage,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-            textAlign: 'center',
-            backgroundImage: `linear-gradient(rgba(2,6,23,0.8), rgba(2,6,23,0.95)), url(${heroBackground})`,
-            backgroundSize: 'cover'
-          }}>
-            <h1 style={{ fontSize: '65px', fontWeight: '800', marginBottom: '15px', letterSpacing: '-1px' }}>
-              Manage Your <span style={{ color: '#6366f1' }}>Money Better.</span>
-            </h1>
-            <p style={{ fontSize: '20px', color: '#94a3b8', maxWidth: '700px', marginBottom: '40px', lineHeight: '1.6' }}>
-              The most professional financial tracker for Indian students and professionals.
-              No more manual calculations, just pure insights.
-            </p>
-            <div style={{ display: 'flex', gap: '20px' }}>
-              <button style={{ ...styles.primaryBtn, padding: '15px 40px' }} onClick={() => setView('login')}>Login Now</button>
-              <button style={{ ...styles.primaryBtn, background: 'transparent', border: '2px solid #6366f1' }} onClick={() => setShowDemoModal(true)}>Video Demo</button>
-            </div>
-          </header>
-
-          {/* Features Section (यामुळे पेज स्क्रोल होईल) */}
-          <section style={{ padding: '100px 20px', background: '#020617', textAlign: 'center' }}>
-            <h2 style={{ fontSize: '40px', marginBottom: '50px' }}>Advanced Features</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', padding: '0 10%' }}>
-              <div style={styles.commonCard}>
-                <h3 style={{ color: '#6366f1' }}>Reports</h3>
-                <p>Detailed analysis of your monthly spending habits with beautiful charts.</p>
-              </div>
-              <div style={styles.commonCard}>
-                <h3 style={{ color: '#6366f1' }}>Planned Expenses</h3>
-                <p>Track upcoming bills and avoid late fees with our smart planner.</p>
-              </div>
-              <div style={styles.commonCard}>
-                <h3 style={{ color: '#6366f1' }}>Secure Data</h3>
-                <p>Your financial records are safely stored in our robust PostgreSQL database.</p>
-              </div>
-            </div>
-          </section>
-          
-          <footer style={{ padding: '40px', textAlign: 'center', borderTop: '1px solid #1e293b', color: '#64748b' }}>
-            <p>© 2026 FinTrace - Your Smart Finance Partner</p>
-          </footer>
-        </div>
+        <header style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', backgroundImage: `linear-gradient(rgba(2,6,23,0.8), rgba(2,6,23,0.95)), url(${heroBackground})`, backgroundSize: 'cover' }}>
+          <h1 style={{ fontSize: '3.5rem', fontWeight: '800' }}>Manage Your <span style={{ color: '#6366f1' }}>Money Better.</span></h1>
+          <p style={{ maxWidth: '600px', color: '#94a3b8', fontSize: '1.2rem' }}>The most professional financial tracker for CSE students.</p>
+          <div style={{ display: 'flex', gap: '20px', marginTop: '30px' }}>
+            <button style={styles.primaryBtn} onClick={() => setView('login')}>Login Now</button>
+            <button style={{ ...styles.primaryBtn, background: 'transparent', border: '2px solid #6366f1' }} onClick={() => setShowDemoModal(true)}>Watch Demo</button>
+          </div>
+        </header>
       </div>
     );
   }
@@ -266,181 +158,145 @@ const styles = {
   if (view === 'login') {
     return (
       <div style={{ ...styles.mainWrapper, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        {/* लॉगिनच्या वेळी टूलबार हवा असेल तर तो इथेही ऍड करता येईल */}
-        <div style={{ ...styles.commonCard, width: '400px' }}>
-          <h2 style={{ textAlign: 'center', color: '#6366f1' }}>Login to FinTrace</h2>
+        <div style={{ ...styles.commonCard, width: '380px' }}>
+          <h2 style={{ textAlign: 'center', color: '#6366f1' }}>Login</h2>
           <form onSubmit={loginUser}>
             <input name="username" style={styles.inputBox} placeholder="Username" required />
             <input name="password" type="password" style={styles.inputBox} placeholder="Password" required />
-            <button type="submit" style={{ ...styles.primaryBtn, width: '100%' }}>{isSubmitting ? "Processing..." : "Login"}</button>
+            <button type="submit" style={{ ...styles.primaryBtn, width: '100%' }}>{isSubmitting ? "Wait..." : "Login"}</button>
           </form>
-          <p style={{ textAlign: 'center', marginTop: '20px', color: '#94a3b8', cursor: 'pointer' }} onClick={() => setView('explore')}>← Back to Home</p>
+          <p onClick={() => setView('explore')} style={{ textAlign: 'center', marginTop: '20px', cursor: 'pointer', color: '#94a3b8' }}>← Back</p>
         </div>
       </div>
     );
   }
+
   return (
     <div style={{ ...styles.mainWrapper, display: 'flex' }}>
-      {/* --- Sidebar Menu --- */}
       <aside style={styles.sidePanel}>
         <h2 style={{ color: '#6366f1', marginBottom: '30px' }}>{isSidebarOpen ? "FINTRACE" : "FT"}</h2>
         <nav style={{ flex: 1 }}>
-          <button style={styles.menuButton(view === 'dashboard')} onClick={() => setView('dashboard')}><span>📊</span> {isSidebarOpen && "Dashboard"}</button>
-          <button style={styles.menuButton(view === 'reports')} onClick={() => setView('reports')}><span>📈</span> {isSidebarOpen && "Reports"}</button>
-          <button style={styles.menuButton(view === 'planned')} onClick={() => setView('planned')}><span>📅</span> {isSidebarOpen && "Planned"}</button>
-          <button style={styles.menuButton(view === 'planner')} onClick={() => setView('planner')}><span>🗓️</span> {isSidebarOpen && "Planner"}</button>
-          <button style={styles.menuButton(view === 'settings')} onClick={() => setView('settings')}><span>⚙️</span> {isSidebarOpen && "Settings"}</button>
-          <button style={styles.menuButton(view === 'add')} onClick={() => setView('add')}><span>➕</span> {isSidebarOpen && "Add Money"}</button>
+          <button style={styles.menuButton(view === 'dashboard')} onClick={() => setView('dashboard')}>📊 {isSidebarOpen && "Dashboard"}</button>
+          <button style={styles.menuButton(view === 'reports')} onClick={() => setView('reports')}>📈 {isSidebarOpen && "Reports"}</button>
+          <button style={styles.menuButton(view === 'planned')} onClick={() => setView('planned')}>📅 {isSidebarOpen && "Planned"}</button>
+          <button style={styles.menuButton(view === 'planner')} onClick={() => setView('planner')}>🗓️ {isSidebarOpen && "Planner"}</button>
+          <button style={styles.menuButton(view === 'settings')} onClick={() => setView('settings')}>⚙️ {isSidebarOpen && "Settings"}</button>
+          <button style={styles.menuButton(view === 'add')} onClick={() => setView('add')}>➕ {isSidebarOpen && "Add Money"}</button>
         </nav>
-        <button style={{ ...styles.primaryBtn, backgroundColor: '#ef4444' }} onClick={() => setView('explore')}>Logout</button>
+        <button style={{ ...styles.primaryBtn, background: '#ef4444' }} onClick={() => setUser(null) || setView('explore')}>Logout</button>
       </aside>
 
       <main style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
-        
-        {/* --- Dashboard View --- */}
         {view === 'dashboard' && (
           <div>
-            <h1>Welcome, {user?.username}!</h1>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', margin: '30px 0' }}>
+            <h1>Hi, {user?.username}!</h1>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', margin: '30px 0' }}>
               <div style={styles.commonCard}><span>Balance</span><h2 style={{color: '#10b981'}}>₹{netBalance}</h2></div>
               <div style={styles.commonCard}><span>Income</span><h2>₹{totalIncome}</h2></div>
-              <div style={styles.commonCard}><span>Expenses</span><h2 style={{color: '#ef4444'}}>₹{totalExpense}</h2></div>
+              <div style={styles.commonCard}><span>Expense</span><h2 style={{color: '#ef4444'}}>₹{totalExpense}</h2></div>
             </div>
-            {/* Pie Chart */}
-            {/* --- चार्टचा भाग --- */}
-<div style={styles.commonCard}>
-  <h3>Income vs Expense Split</h3>
-  {/* इथे उंची ३०० पिक्सेल फिक्स करा */}
-  <div style={{ height: '300px', width: '100%' }}> 
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart>
-        <Pie 
-          data={[{name:'In', value:totalIncome}, {name:'Out', value:totalExpense}]} 
-          dataKey="value" 
-          innerRadius={60} 
-          outerRadius={100} 
-          paddingAngle={5}
-        >
-          <Cell fill="#10b981" />
-          <Cell fill="#ef4444" />
-        </Pie>
-        <Tooltip />
-      </PieChart>
-    </ResponsiveContainer>
-  </div>
-</div>
+            <div style={{ ...styles.commonCard, height: '350px' }}>
+              <h3>Income vs Expense</h3>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={[{name:'In', value:totalIncome || 1}, {name:'Out', value:totalExpense || 0.1}]} dataKey="value" innerRadius={60} outerRadius={100} paddingAngle={5}>
+                    <Cell fill="#10b981" /><Cell fill="#ef4444" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         )}
 
-        {/* --- Reports View (नवीन) --- */}
         {view === 'reports' && (
           <div>
-            <h1>📈 Financial Reports</h1>
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'25px', marginTop:'30px'}}>
-              <div style={styles.commonCard}>
-                <h3>Monthly Spending Trend</h3>
-                <div style={{height:'300px'}}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={transactions}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="description" stroke="#94a3b8" />
-                      <YAxis stroke="#94a3b8" />
-                      <Tooltip contentStyle={{background:'#1e293b', border:'none'}} />
-                      <Line type="monotone" dataKey="amount" stroke="#6366f1" strokeWidth={3} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div style={styles.commonCard}>
-                <h3>Top Categories</h3>
-                <ul style={{listStyle:'none', padding:0}}>
-                  {['Food', 'Travel', 'Bills', 'Shopping', 'General'].map(cat => (
-                    <li key={cat} style={{padding:'15px 0', borderBottom:'1px solid #334155', display:'flex', justifyContent:'space-between'}}>
-                      <span>{cat}</span>
-                      <span style={{fontWeight:'bold'}}>₹{transactions.filter(t => t.category === cat).reduce((s, t) => s + Number(t.amount), 0)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <h1>Reports & Trends</h1>
+            <div style={{ ...styles.commonCard, height: '350px', marginTop: '20px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={transactions}>
+                  <CartesianGrid stroke="#334155" />
+                  <XAxis dataKey="description" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip contentStyle={{background:'#1e293b', border:'none'}} />
+                  <Line type="monotone" dataKey="amount" stroke="#6366f1" strokeWidth={3} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div style={{...styles.commonCard, marginTop:'20px'}}>
+               <h3>Top Categories</h3>
+               {['Food', 'Travel', 'Bills', 'Shopping', 'General'].map(cat => (
+                 <div key={cat} style={{display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid #334155'}}>
+                   <span>{cat}</span>
+                   <span>₹{transactions.filter(t => t.category === cat).reduce((s,t) => s + Number(t.amount), 0)}</span>
+                 </div>
+               ))}
             </div>
           </div>
         )}
 
-        {/* --- Planned Transactions View (नवीन) --- */}
         {view === 'planned' && (
-          <div style={{maxWidth:'800px'}}>
-            <h1>📅 Upcoming / Planned Expenses</h1>
-            <p style={{color:'#94a3b8', margin:'10px 0 30px'}}>List of things you need to buy or pay for soon.</p>
-            <button style={{...styles.primaryBtn, marginBottom:'30px'}} onClick={addPlannedTx}>+ Add New Plan</button>
-            
-            <div style={{display:'flex', flexDirection:'column', gap:'15px'}}>
+          <div>
+            <h1>📅 Upcoming Expenses</h1>
+            <button style={{...styles.primaryBtn, marginBottom:'20px'}} onClick={addPlannedTx}>+ Add Plan</button>
+            <div style={{display:'flex', flexDirection:'column', gap:'10px'}}>
               {plannedTransactions.map(pt => (
-                <div key={pt.id} style={{...styles.commonCard, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                  <div><h3 style={{margin:0}}>{pt.title}</h3><small style={{color:'#6366f1'}}>Estimated Date: {pt.date}</small></div>
-                  <div style={{display:'flex', alignItems:'center', gap:'20px'}}>
-                    <h2 style={{margin:0}}>₹{pt.amount}</h2>
-                    <button onClick={() => setPlannedTransactions(plannedTransactions.filter(x => x.id !== pt.id))} style={{color:'#ef4444', background:'none', border:'none', cursor:'pointer'}}>Delete</button>
-                  </div>
+                <div key={pt.id} style={{...styles.commonCard, display:'flex', justifyContent:'space-between'}}>
+                  <span>{pt.title} ({pt.date})</span>
+                  <b>₹{pt.amount}</b>
                 </div>
               ))}
-              {plannedTransactions.length === 0 && <p style={{textAlign:'center', padding:'50px', color:'#94a3b8'}}>No planned expenses yet.</p>}
             </div>
           </div>
         )}
 
-        {/* --- Settings View (नवीन) --- */}
-        {view === 'settings' && (
-          <div style={{maxWidth:'600px'}}>
-            <h1>⚙️ Settings</h1>
-            <div style={{...styles.commonCard, marginTop:'30px'}}>
-              <label style={{display:'block', marginBottom:'10px'}}>Preferred Currency</label>
-              <select style={styles.inputBox} value={appSettings.currency} onChange={e => setAppSettings({...appSettings, currency: e.target.value})}>
-                <option>INR (₹)</option>
-                <option>USD ($)</option>
-                <option>EUR (€)</option>
-              </select>
-
-              <label style={{display:'block', marginBottom:'10px'}}>Theme Mode</label>
-              <div style={{display:'flex', gap:'10px'}}>
-                <button style={{...styles.primaryBtn, background: appSettings.theme === 'Dark' ? '#4f46e5' : '#334155'}} onClick={() => setAppSettings({...appSettings, theme: 'Dark'})}>Dark Mode</button>
-                <button style={{...styles.primaryBtn, background: appSettings.theme === 'Light' ? '#4f46e5' : '#334155'}} onClick={() => setAppSettings({...appSettings, theme: 'Light'})}>Light Mode</button>
-              </div>
-
-              <div style={{marginTop:'40px', padding:'20px', background:'#020617', borderRadius:'10px'}}>
-                <h3>Profile Info</h3>
-                <p>Username: <b>{user?.username}</b></p>
-                <p>System ID: <small>{user?.userId}</small></p>
-              </div>
-              <button style={{...styles.primaryBtn, width:'100%', marginTop:'20px'}} onClick={() => alert("Settings Saved Locally!")}>Save Changes</button>
-            </div>
-          </div>
-        )}
-
-        {/* Planner View */}
         {view === 'planner' && (
-           <div style={{ maxWidth: '800px' }}>
-              <h1>🗓️ Monthly Planner</h1>
-              <div style={{...styles.commonCard, marginTop:'20px'}}>
-                <input style={styles.inputBox} placeholder="Person Name" value={newMonthly.person} onChange={e => setNewMonthly({...newMonthly, person: e.target.value})} />
-                <input style={styles.inputBox} type="number" placeholder="Amount" value={newMonthly.amount} onChange={e => setNewMonthly({...newMonthly, amount: e.target.value})} />
-                <button style={{...styles.primaryBtn, width:'100%'}} onClick={() => {setMonthlyEntries([...monthlyEntries, {...newMonthly, id:Date.now()}]); setNewMonthly({person:'', amount:''})}}>Add to List</button>
-              </div>
-           </div>
+          <div>
+            <h1>🗓️ Monthly Planner</h1>
+            <div style={{...styles.commonCard, maxWidth:'500px'}}>
+              <input style={styles.inputBox} placeholder="Person Name" value={newMonthly.person} onChange={e => setNewMonthly({...newMonthly, person: e.target.value})} />
+              <input style={styles.inputBox} type="number" placeholder="Amount" value={newMonthly.amount} onChange={e => setNewMonthly({...newMonthly, amount: e.target.value})} />
+              <button style={{...styles.primaryBtn, width:'100%'}} onClick={() => {setMonthlyEntries([...monthlyEntries, {...newMonthly, id:Date.now()}]); setNewMonthly({person:'', amount:''})}}>Add Entry</button>
+            </div>
+            <div style={{marginTop:'30px'}}>
+              {monthlyEntries.map(m => (
+                <div key={m.id} style={{...styles.commonCard, marginBottom:'10px', display:'flex', justifyContent:'space-between'}}>
+                  <span>{m.person}</span>
+                  <span>₹{m.amount}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
-        {/* Add Transaction View */}
+        {view === 'settings' && (
+          <div style={{ maxWidth: '500px' }}>
+            <h1>⚙️ Settings</h1>
+            <div style={styles.commonCard}>
+               <label>Currency</label>
+               <select style={styles.inputBox} value={appSettings.currency} onChange={e => setAppSettings({...appSettings, currency: e.target.value})}>
+                 <option>INR (₹)</option><option>USD ($)</option>
+               </select>
+               <button style={{...styles.primaryBtn, width:'100%'}} onClick={() => alert("Settings Saved!")}>Save Changes</button>
+            </div>
+          </div>
+        )}
+
         {view === 'add' && (
-          <div style={{...styles.commonCard, maxWidth:'500px', margin:'0 auto'}}>
+          <div style={{ ...styles.commonCard, maxWidth: '500px', margin: '0 auto' }}>
             <h2>Add Record</h2>
-            <input style={styles.inputBox} placeholder="What for?" value={newEntry.title} onChange={e => setNewEntry({...newEntry, title: e.target.value})} />
-            <input style={styles.inputBox} type="number" placeholder="How much?" value={newEntry.amount} onChange={e => setNewEntry({...newEntry, amount: e.target.value})} />
-            <select style={styles.inputBox} value={newEntry.type} onChange={e => setNewEntry({...newEntry, type: e.target.value})}>
+            <input style={styles.inputBox} placeholder="Description" value={newEntry.title} onChange={e => setNewEntry({ ...newEntry, title: e.target.value })} />
+            <input style={styles.inputBox} type="number" placeholder="Amount" value={newEntry.amount} onChange={e => setNewEntry({ ...newEntry, amount: e.target.value })} />
+            <select style={styles.inputBox} value={newEntry.type} onChange={e => setNewEntry({ ...newEntry, type: e.target.value })}>
               <option value="Expense">Expense</option>
               <option value="Income">Income</option>
             </select>
-            <button style={{...styles.primaryBtn, width:'100%'}} onClick={saveNewTransaction}>Save Transaction</button>
+            <select style={styles.inputBox} value={newEntry.category} onChange={e => setNewEntry({...newEntry, category: e.target.value})}>
+              <option value="General">General</option><option value="Food">Food</option><option value="Travel">Travel</option><option value="Bills">Bills</option>
+            </select>
+            <button style={{ ...styles.primaryBtn, width: '100%' }} onClick={saveNewTransaction}>{isSubmitting ? "Saving..." : "Save Transaction"}</button>
           </div>
         )}
-
       </main>
     </div>
   );
