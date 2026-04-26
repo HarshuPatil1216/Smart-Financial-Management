@@ -129,13 +129,43 @@ const App = () => {
   const budgetUsage = myLimit > 0 ? Math.min((totalExpense / myLimit) * 100, 100) : 0;
 
   // --- Styling Section ---
-  const styles = {
-    mainWrapper: { backgroundColor: '#020617', minHeight: '100vh', color: '#e2e8f0', fontFamily: 'system-ui, -apple-system, sans-serif' },
-    sidePanel: { 
-        width: isSidebarOpen ? '260px' : '80px', background: '#0f172a', padding: '25px 15px', 
-        borderRight: '1px solid #1e293b', position: 'sticky', top: 0, height: '100vh', 
-        display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' 
-    },
+const styles = {
+  mainWrapper: { 
+    backgroundColor: '#020617', 
+    minHeight: '100vh', 
+    color: '#e2e8f0', 
+    fontFamily: 'system-ui, -apple-system, sans-serif' 
+  },
+  
+  // --- हा भाग अपडेट करा ---
+  navBar: { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    padding: '10px 40px', 
+    background: 'rgba(15, 23, 42, 0.8)', 
+    borderBottom: '1px solid #1e293b', 
+    alignItems: 'center', 
+    position: 'fixed', 
+    width: '100%', 
+    top: 0, 
+    left: 0,
+    zIndex: 2000, 
+    backdropFilter: 'blur(10px)', 
+    boxSizing: 'border-box' 
+  },
+  
+  contentWrapper: {
+    paddingTop: '80px', 
+    minHeight: '100vh'
+  },
+  // -------------------------
+
+  commonCard: { 
+    backgroundColor: '#1e293b', 
+    padding: '25px', 
+    borderRadius: '15px', 
+    border: '1px solid #334155' 
+  },
     menuButton: (active) => ({
       width: '100%', padding: '15px', marginBottom: '8px', borderRadius: '12px',
       border: 'none', textAlign: 'left', cursor: 'pointer', fontWeight: 'bold',
@@ -151,37 +181,104 @@ const App = () => {
   };
 
   // --- Views ---
-  if (view === 'explore') {
+ if (view === 'explore') {
     return (
       <div style={styles.mainWrapper}>
         <DemoModal show={showDemoModal} onClose={() => setShowDemoModal(false)} />
-        <header style={{...styles.landingPage, display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', height:'100vh', textAlign:'center', backgroundImage: `linear-gradient(rgba(2,6,23,0.8), rgba(2,6,23,0.95)), url(${heroBackground})`, backgroundSize:'cover'}}>
-          <h1 style={{fontSize: '60px', fontWeight: '800'}}>Manage Your <span style={{color: '#6366f1'}}>Money Better.</span></h1>
-          <p style={{fontSize: '20px', color: '#94a3b8', margin: '20px 0 40px'}}>The most professional financial tracker for Indian students and professionals.</p>
-          <div style={{display:'flex', gap:'20px'}}>
-            <button style={styles.primaryBtn} onClick={() => setView('login')}>Login Now</button>
-            <button style={{...styles.primaryBtn, background:'transparent', border:'2px solid #6366f1'}} onClick={() => setShowDemoModal(true)}>Video Demo</button>
+        
+        {/* --- नवीन Sticky Toolbar --- */}
+        <nav style={{
+          ...styles.navBar,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          zIndex: 2000,
+          background: 'rgba(15, 23, 42, 0.8)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          padding: '15px 40px',
+          boxSizing: 'border-box',
+          borderBottom: '1px solid #1e293b'
+        }}>
+          <h2 style={{ color: '#6366f1', margin: 0, cursor: 'pointer' }} onClick={() => setView('explore')}>FinTrace</h2>
+          <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
+            <span style={{ cursor: 'pointer', fontWeight: '500' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</span>
+            <span style={{ cursor: 'pointer', fontWeight: '500' }} onClick={() => setView('login')}>Login</span>
+            <button style={styles.primaryBtn} onClick={() => setView('login')}>Get Started</button>
           </div>
-        </header>
+        </nav>
+
+        {/* --- स्क्रोल होणारा कंटेंट --- */}
+        <div style={{ paddingTop: '80px' }}>
+          <header style={{
+            ...styles.landingPage,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh',
+            textAlign: 'center',
+            backgroundImage: `linear-gradient(rgba(2,6,23,0.8), rgba(2,6,23,0.95)), url(${heroBackground})`,
+            backgroundSize: 'cover'
+          }}>
+            <h1 style={{ fontSize: '65px', fontWeight: '800', marginBottom: '15px', letterSpacing: '-1px' }}>
+              Manage Your <span style={{ color: '#6366f1' }}>Money Better.</span>
+            </h1>
+            <p style={{ fontSize: '20px', color: '#94a3b8', maxWidth: '700px', marginBottom: '40px', lineHeight: '1.6' }}>
+              The most professional financial tracker for Indian students and professionals.
+              No more manual calculations, just pure insights.
+            </p>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <button style={{ ...styles.primaryBtn, padding: '15px 40px' }} onClick={() => setView('login')}>Login Now</button>
+              <button style={{ ...styles.primaryBtn, background: 'transparent', border: '2px solid #6366f1' }} onClick={() => setShowDemoModal(true)}>Video Demo</button>
+            </div>
+          </header>
+
+          {/* Features Section (यामुळे पेज स्क्रोल होईल) */}
+          <section style={{ padding: '100px 20px', background: '#020617', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '40px', marginBottom: '50px' }}>Advanced Features</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', padding: '0 10%' }}>
+              <div style={styles.commonCard}>
+                <h3 style={{ color: '#6366f1' }}>Reports</h3>
+                <p>Detailed analysis of your monthly spending habits with beautiful charts.</p>
+              </div>
+              <div style={styles.commonCard}>
+                <h3 style={{ color: '#6366f1' }}>Planned Expenses</h3>
+                <p>Track upcoming bills and avoid late fees with our smart planner.</p>
+              </div>
+              <div style={styles.commonCard}>
+                <h3 style={{ color: '#6366f1' }}>Secure Data</h3>
+                <p>Your financial records are safely stored in our robust PostgreSQL database.</p>
+              </div>
+            </div>
+          </section>
+          
+          <footer style={{ padding: '40px', textAlign: 'center', borderTop: '1px solid #1e293b', color: '#64748b' }}>
+            <p>© 2026 FinTrace - Your Smart Finance Partner</p>
+          </footer>
+        </div>
       </div>
     );
   }
 
   if (view === 'login') {
     return (
-      <div style={{...styles.mainWrapper, display:'flex', justifyContent:'center', alignItems:'center'}}>
-        <div style={{...styles.commonCard, width:'400px'}}>
-          <h2 style={{textAlign:'center', color:'#6366f1'}}>Login to FinTrace</h2>
+      <div style={{ ...styles.mainWrapper, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        {/* लॉगिनच्या वेळी टूलबार हवा असेल तर तो इथेही ऍड करता येईल */}
+        <div style={{ ...styles.commonCard, width: '400px' }}>
+          <h2 style={{ textAlign: 'center', color: '#6366f1' }}>Login to FinTrace</h2>
           <form onSubmit={loginUser}>
             <input name="username" style={styles.inputBox} placeholder="Username" required />
             <input name="password" type="password" style={styles.inputBox} placeholder="Password" required />
-            <button type="submit" style={{...styles.primaryBtn, width:'100%'}}>{isSubmitting ? "Processing..." : "Login"}</button>
+            <button type="submit" style={{ ...styles.primaryBtn, width: '100%' }}>{isSubmitting ? "Processing..." : "Login"}</button>
           </form>
+          <p style={{ textAlign: 'center', marginTop: '20px', color: '#94a3b8', cursor: 'pointer' }} onClick={() => setView('explore')}>← Back to Home</p>
         </div>
       </div>
     );
   }
-
   return (
     <div style={{ ...styles.mainWrapper, display: 'flex' }}>
       {/* --- Sidebar Menu --- */}
@@ -203,7 +300,7 @@ const App = () => {
         {/* --- Dashboard View --- */}
         {view === 'dashboard' && (
           <div>
-            <h1>Namaste, {user?.username}!</h1>
+            <h1>Welcome, {user?.username}!</h1>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', margin: '30px 0' }}>
               <div style={styles.commonCard}><span>Balance</span><h2 style={{color: '#10b981'}}>₹{netBalance}</h2></div>
               <div style={styles.commonCard}><span>Income</span><h2>₹{totalIncome}</h2></div>
