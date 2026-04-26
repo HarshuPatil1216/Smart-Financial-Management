@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -11,7 +11,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
 
-  // बॅकएंडची मूळ URL (इथे एकदाच बदलली की सर्व ठिकाणी लागू होईल)
+  // Backend Base URL
   const API_BASE_URL = "https://smart-finance-backend-v2.onrender.com";
 
   // Savings Goal State
@@ -20,9 +20,9 @@ const App = () => {
   const loadTransactions = async (userId) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/history/${userId}`);
-      setTransactions(res.data);
+      setTransactions(res.data || []);
     } catch (err) { 
-      console.error("Error loading data from backend."); 
+      console.error("Error loading data:", err); 
     }
   };
 
@@ -100,17 +100,6 @@ const App = () => {
     }
   };
 
-  const exportToCSV = () => {
-    const headers = "Description,Amount,Type,Category,Date\n";
-    const rows = transactions.map(t => `${t.description},${t.amount},${t.type},${t.category},${t.date}`).join("\n");
-    const blob = new Blob([headers + rows], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `FinTrace_Report.csv`;
-    a.click();
-  };
-
   // Logic Calculations
   const totalIncome = transactions.filter(t => t.type === 'Income').reduce((a, b) => a + Number(b.amount), 0);
   const totalExpense = transactions.filter(t => t.type === 'Expense').reduce((a, b) => a + Number(b.amount), 0);
@@ -120,7 +109,7 @@ const App = () => {
   const remainingForGoal = Math.max(savingsGoal.target - balance, 0);
 
   const filteredTransactions = transactions.filter(t => {
-    const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = t.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === "All" || (t.category === filterCategory);
     return matchesSearch && matchesCategory;
   });
@@ -151,16 +140,13 @@ const App = () => {
     aiBadge: { background: 'linear-gradient(90deg, #818cf8, #c084fc)', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold' }
   };
 
-  // 1. Explore View
   if (view === 'explore') {
     return (
       <div style={styles.wrapper}>
         <nav style={styles.navbar}>
           <h2 style={{ color: '#6366f1', margin: 0 }}>FinTrace</h2>
           <div style={{ display: 'flex', gap: '30px' }}>
-            <span>Home</span>
-            <span>Features</span>
-            <span>Security</span>
+            <span>Home</span><span>Features</span><span>Security</span>
           </div>
           <button style={styles.btn} onClick={() => setView('login')}>Sign In</button>
         </nav>
@@ -173,7 +159,6 @@ const App = () => {
     );
   }
 
-  // 2. Auth Views
   if (view === 'login' || view === 'register') {
     return (
       <div style={{ ...styles.wrapper, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -193,7 +178,6 @@ const App = () => {
     );
   }
 
-  // 3. Dashboard View
   return (
     <div style={{ ...styles.wrapper, display: 'flex' }}>
       <div style={styles.sidebar}>
@@ -220,7 +204,7 @@ const App = () => {
               </div>
             </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
               <div style={styles.statCard}><span>Income</span><h2 style={{ color: '#10b981' }}>₹{totalIncome}</h2></div>
               <div style={styles.statCard}><span>Expenses</span><h2 style={{ color: '#ef4444' }}>₹{totalExpense}</h2></div>
               <div style={styles.statCard}><span>Top Category</span><h2>{topCategory}</h2></div>
@@ -238,15 +222,15 @@ const App = () => {
               <p style={{ fontSize: '12px' }}>{savingsProgress.toFixed(1)}% Completed (Remaining: ₹{remainingForGoal})</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '30px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
               <div style={styles.card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <h3>History</h3>
                   <input placeholder="Search..." style={{ ...styles.input, width: '150px', marginBottom: 0 }} onChange={e => setSearchTerm(e.target.value)} />
                 </div>
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {filteredTransactions.map((t, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #1f2937' }}>
+                  {filteredTransactions.map((t) => (
+                    <div key={t.id || Math.random()} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #1f2937' }}>
                       <div>{t.description} <small style={{ color: '#64748b' }}>({t.category})</small></div>
                       <div style={{ color: t.type === 'Income' ? '#10b981' : '#ef4444' }}>
                         ₹{t.amount} <button onClick={() => handleDelete(t.id)} style={{ color: 'grey', background: 'none', border: 'none', cursor: 'pointer', marginLeft: '10px' }}>x</button>
@@ -258,14 +242,16 @@ const App = () => {
 
               <div style={styles.card}>
                 <h3>Analytics</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie data={[{ name: 'In', value: totalIncome || 1 }, { name: 'Out', value: totalExpense }]} innerRadius={50} outerRadius={70} dataKey="value">
-                      <Cell fill="#10b981" /><Cell fill="#ef4444" />
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div style={{ width: '100%', height: 200 }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie data={[{ name: 'In', value: totalIncome || 1 }, { name: 'Out', value: totalExpense || 0.1 }]} innerRadius={50} outerRadius={70} dataKey="value">
+                        <Cell fill="#10b981" /><Cell fill="#ef4444" />
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </>
