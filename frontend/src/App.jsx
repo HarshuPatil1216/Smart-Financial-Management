@@ -12,8 +12,8 @@ const App = () => {
   const [filterCategory, setFilterCategory] = useState("All");
 
   // Backend Base URL
-  const API_BASE_URL = "https://smart-finance-backend-v2.onrender.com";
 
+const API_BASE_URL = "https://smart-finance-backend-knxx.onrender.com";
   // Savings Goal State
   const [savingsGoal] = useState({ name: "Emergency Fund", target: 50000 });
 
