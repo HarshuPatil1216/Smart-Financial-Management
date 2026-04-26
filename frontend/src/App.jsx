@@ -15,8 +15,8 @@ const App = () => {
   const API_BASE_URL = "https://smart-finance-backend-knxx.onrender.com";
   const [savingsGoal] = useState({ name: "Emergency Fund", target: 50000 });
   
-  // ही ती प्रोफेशनल इमेज लिंक आहे
-  const loginImg = "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80";
+  // ही ती प्रोफेशनल बॅकग्राउंड इमेज आहे
+  const heroImg = "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80";
 
   const loadTransactions = async (userId) => {
     try {
@@ -113,7 +113,7 @@ const App = () => {
     }
   };
 
-  // Calculations (Oringal)
+  // Logic Calculations
   const totalIncome = transactions.filter(t => t.type === 'Income').reduce((a, b) => a + Number(b.amount), 0);
   const totalExpense = transactions.filter(t => t.type === 'Expense').reduce((a, b) => a + Number(b.amount), 0);
   const balance = totalIncome - totalExpense;
@@ -140,35 +140,30 @@ const App = () => {
 
   const predictedSpend = (totalExpense / (new Date().getDate() || 1)) * 30;
 
-  // Professional UI Styles
+  // Global Styles
   const styles = {
     wrapper: { backgroundColor: '#030712', minHeight: '100vh', color: '#f3f4f6', fontFamily: 'Inter, sans-serif' },
-    navbar: { display: 'flex', justifyContent: 'space-between', padding: '15px 50px', background: '#111827', borderBottom: '1px solid #1f2937', alignItems: 'center', position: 'fixed', width: '100%', top: 0, zIndex: 1000, boxSizing: 'border-box' },
+    navbar: { display: 'flex', justifyContent: 'space-between', padding: '15px 50px', background: 'rgba(17, 24, 39, 0.8)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #1f2937', alignItems: 'center', position: 'fixed', width: '100%', top: 0, zIndex: 1000, boxSizing: 'border-box' },
     sidebar: { width: '280px', background: '#111827', padding: '30px', borderRight: '1px solid #1f2937', position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column' },
     main: { flex: 1, padding: '100px 40px 40px', overflowY: 'auto' },
     card: { backgroundColor: '#111827', padding: '24px', borderRadius: '16px', border: '1px solid #1f2937', marginBottom: '25px' },
     statCard: { padding: '20px', borderRadius: '16px', background: '#1f2937', border: '1px solid #374151' },
     input: { width: '100%', padding: '12px', marginBottom: '15px', borderRadius: '8px', background: '#0f172a', color: 'white', border: '1px solid #334155', outline: 'none' },
-    btn: { padding: '12px 24px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.3s' },
+    btn: { padding: '12px 24px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', transition: '0.3s' },
     aiBadge: { background: 'linear-gradient(90deg, #818cf8, #c084fc)', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold' },
     
-    // Split Screen Styles
+    // Split Screen for Login
     splitScreen: { display: 'flex', minHeight: '100vh', width: '100%' },
-    formSide: { flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px' },
+    formSide: { flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '40px', background: '#030712' },
     imageSide: { 
-      flex: 1.5, 
-      backgroundImage: `url(${loginImg})`, 
-      backgroundSize: 'cover', 
-      backgroundPosition: 'center', 
-      position: 'relative', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      color: 'white'
-    },
-    overlay: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(3, 7, 18, 0.7)' }
+      flex: 1.2, 
+      backgroundImage: `linear-gradient(rgba(3, 7, 18, 0.4), rgba(3, 7, 18, 0.8)), url(${heroImg})`, 
+      backgroundSize: 'cover', backgroundPosition: 'center', 
+      display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', padding: '40px', textAlign: 'center'
+    }
   };
 
+  // 1. EXPLORE VIEW (Hero Section with Image)
   if (view === 'explore') {
     return (
       <div style={styles.wrapper}>
@@ -177,22 +172,36 @@ const App = () => {
           <div style={{ display: 'flex', gap: '30px' }}><span>Home</span><span>Features</span><span>Security</span></div>
           <button style={styles.btn} onClick={() => setView('login')}>Sign In</button>
         </nav>
-        <div style={{ textAlign: 'center', padding: '200px 20px' }}>
-          <h1 style={{ fontSize: '64px', fontWeight: 'bold', marginBottom: '20px' }}>Master Your Money</h1>
-          <p style={{ color: '#94a3b8', fontSize: '20px', maxWidth: '600px', margin: '0 auto' }}>AI-driven insights to help you save, spend, and invest smarter.</p>
-          <button style={{ ...styles.btn, marginTop: '40px', fontSize: '18px', padding: '15px 40px' }} onClick={() => setView('register')}>Get Started Now</button>
+
+        <div style={{ 
+          height: '100vh', width: '100%', 
+          backgroundImage: `linear-gradient(rgba(3, 7, 18, 0.5), rgba(3, 7, 18, 0.9)), url(${heroImg})`, 
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center'
+        }}>
+          <h1 style={{ fontSize: '80px', fontWeight: '900', marginBottom: '20px', background: 'linear-gradient(to right, #fff, #6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Master Your Money
+          </h1>
+          <p style={{ color: '#cbd5e1', fontSize: '22px', maxWidth: '700px', marginBottom: '40px', lineHeight: '1.6' }}>
+            Smart AI-powered insights to help you track expenses, set goals, and achieve financial freedom.
+          </p>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <button style={{ ...styles.btn, fontSize: '18px', padding: '16px 45px' }} onClick={() => setView('register')}>Get Started Free</button>
+            <button style={{ padding: '16px 45px', background: 'transparent', color: 'white', border: '1px solid #6366f1', borderRadius: '8px', cursor: 'pointer', fontSize: '18px' }}>Watch Demo</button>
+          </div>
         </div>
       </div>
     );
   }
 
+  // 2. LOGIN / REGISTER VIEW (Split Screen)
   if (view === 'login' || view === 'register') {
     return (
       <div style={styles.splitScreen}>
         <div style={styles.formSide}>
           <div style={{ width: '100%', maxWidth: '360px' }}>
             <h1 style={{ color: '#6366f1', marginBottom: '10px' }}>FinTrace</h1>
-            <h2 style={{ marginBottom: '30px' }}>{view === 'login' ? 'Login to Dashboard' : 'Create an Account'}</h2>
+            <h2 style={{ marginBottom: '30px' }}>{view === 'login' ? 'Welcome Back' : 'Join FinTrace'}</h2>
             <form onSubmit={view === 'login' ? handleLogin : handleRegister}>
               {view === 'register' && <input name="email" type="email" style={styles.input} placeholder="Email" required />}
               <input name="username" style={styles.input} placeholder="Username" required />
@@ -202,27 +211,27 @@ const App = () => {
               </button>
             </form>
             <p onClick={() => setView(view === 'login' ? 'register' : 'login')} style={{ textAlign: 'center', cursor: 'pointer', marginTop: '25px', color: '#94a3b8' }}>
-              {view === 'login' ? "Don't have an account? Register" : "Already have an account? Login"}
+              {view === 'login' ? "New here? Create account" : "Already have an account? Login"}
             </p>
           </div>
         </div>
         <div style={styles.imageSide}>
-          <div style={styles.overlay}></div>
-          <div style={{ zIndex: 1, textAlign: 'center', padding: '40px' }}>
-            <h2 style={{ fontSize: '42px', marginBottom: '20px' }}>Smart Wealth Management</h2>
-            <p style={{ fontSize: '18px', color: '#cbd5e1' }}>Take the guesswork out of your finances with real-time analytics.</p>
+          <div>
+            <h2 style={{ fontSize: '40px', marginBottom: '15px' }}>Secure & Smart</h2>
+            <p style={{ fontSize: '18px', color: '#cbd5e1' }}>Your data is encrypted and your future is planned.</p>
           </div>
         </div>
       </div>
     );
   }
 
+  // 3. DASHBOARD VIEW
   return (
     <div style={{ ...styles.wrapper, display: 'flex' }}>
       <div style={styles.sidebar}>
         <h2 style={{ color: '#6366f1', marginBottom: '40px' }}>FinTrace</h2>
         <div style={{ padding: '15px', background: '#1f2937', borderRadius: '12px', marginBottom: '30px' }}>
-          <p style={{ color: '#94a3b8', fontSize: '12px', margin: 0 }}>User</p>
+          <p style={{ color: '#94a3b8', fontSize: '12px', margin: 0 }}>Active User</p>
           <h3 style={{ margin: 0 }}>{user?.username}</h3>
         </div>
         <nav style={{ flex: 1 }}>
@@ -236,16 +245,16 @@ const App = () => {
         {view === 'dashboard' && (
           <>
             <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
-              <h1>Analytics Overview</h1>
+              <h1>Financial Overview</h1>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ color: '#94a3b8', margin: 0 }}>Current Balance</p>
+                <p style={{ color: '#94a3b8', margin: 0 }}>Total Balance</p>
                 <h1 style={{ color: balance >= 0 ? '#10b981' : '#ef4444', margin: 0 }}>₹{balance}</h1>
               </div>
             </header>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-              <div style={styles.statCard}><span>Total Income</span><h2 style={{ color: '#10b981' }}>₹{totalIncome}</h2></div>
-              <div style={styles.statCard}><span>Total Expenses</span><h2 style={{ color: '#ef4444' }}>₹{totalExpense}</h2></div>
+              <div style={styles.statCard}><span>Income</span><h2 style={{ color: '#10b981' }}>₹{totalIncome}</h2></div>
+              <div style={styles.statCard}><span>Expenses</span><h2 style={{ color: '#ef4444' }}>₹{totalExpense}</h2></div>
               <div style={styles.statCard}><span>Top Category</span><h2>{topCategory}</h2></div>
               <div style={{ ...styles.statCard, border: '1px solid #6366f1' }}>
                 <span style={styles.aiBadge}>AI FORECAST</span>
@@ -272,16 +281,13 @@ const App = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
               <div style={styles.card}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                  <h3>Transaction History</h3>
+                  <h3>History</h3>
                   <input placeholder="Search..." style={{ ...styles.input, width: '180px', marginBottom: 0 }} onChange={e => setSearchTerm(e.target.value)} />
                 </div>
                 <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
                   {filteredTransactions.map((t) => (
                     <div key={t.id || Math.random()} style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderBottom: '1px solid #1f2937' }}>
-                      <div>
-                        <strong>{t.description}</strong><br/>
-                        <small style={{ color: '#64748b' }}>{t.category}</small>
-                      </div>
+                      <div><strong>{t.description}</strong><br/><small style={{ color: '#64748b' }}>{t.category}</small></div>
                       <div style={{ color: t.type === 'Income' ? '#10b981' : '#ef4444', textAlign: 'right' }}>
                         ₹{t.amount} <br/>
                         <button onClick={() => handleDelete(t.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
@@ -292,11 +298,11 @@ const App = () => {
               </div>
 
               <div style={styles.card}>
-                <h3>Expense Breakdown</h3>
+                <h3>Analytics</h3>
                 <div style={{ width: '100%', height: 250 }}>
                   <ResponsiveContainer>
                     <PieChart>
-                      <Pie data={[{ name: 'Income', value: totalIncome || 1 }, { name: 'Expense', value: totalExpense || 0.1 }]} innerRadius={60} outerRadius={80} dataKey="value" paddingAngle={5}>
+                      <Pie data={[{ name: 'In', value: totalIncome || 1 }, { name: 'Out', value: totalExpense || 0.1 }]} innerRadius={60} outerRadius={80} dataKey="value" paddingAngle={5}>
                         <Cell fill="#10b981" /><Cell fill="#ef4444" />
                       </Pie>
                       <Tooltip />
@@ -313,13 +319,11 @@ const App = () => {
 
         {view === 'add' && (
           <div style={{ ...styles.card, maxWidth: '500px', margin: '0 auto' }}>
-            <h2 style={{ marginBottom: '30px' }}>Add New Transaction</h2>
+            <h2 style={{ marginBottom: '30px' }}>New Transaction</h2>
             <label style={{fontSize: '14px', color: '#94a3b8'}}>Description</label>
-            <input style={styles.input} placeholder="e.g. Salary, Groceries" value={newEntry.title} onChange={e => setNewEntry({ ...newEntry, title: e.target.value })} />
-            
+            <input style={styles.input} placeholder="e.g. Salary, Rent" value={newEntry.title} onChange={e => setNewEntry({ ...newEntry, title: e.target.value })} />
             <label style={{fontSize: '14px', color: '#94a3b8'}}>Amount (₹)</label>
-            <input style={styles.input} type="number" placeholder="0.00" value={newEntry.amount} onChange={e => setNewEntry({ ...newEntry, amount: e.target.value })} />
-            
+            <input style={styles.input} type="number" value={newEntry.amount} onChange={e => setNewEntry({ ...newEntry, amount: e.target.value })} />
             <div style={{display: 'flex', gap: '20px'}}>
               <div style={{flex: 1}}>
                 <label style={{fontSize: '14px', color: '#94a3b8'}}>Type</label>
@@ -333,16 +337,13 @@ const App = () => {
                 <select style={styles.input} value={newEntry.category} onChange={e => setNewEntry({ ...newEntry, category: e.target.value })}>
                   <option value="General">General</option>
                   <option value="Food">Food</option>
-                  <option value="Travel">Travel</option>
                   <option value="Bills">Bills</option>
-                  <option value="Shopping">Shopping</option>
-                  <option value="Entertainment">Entertainment</option>
+                  <option value="Travel">Travel</option>
                 </select>
               </div>
             </div>
-            
             <button style={{ ...styles.btn, width: '100%', marginTop: '20px' }} onClick={handleSaveTransaction} disabled={isSubmitting}>
-               {isSubmitting ? "Processing..." : "Save Transaction"}
+               {isSubmitting ? "Saving..." : "Save Transaction"}
             </button>
           </div>
         )}
