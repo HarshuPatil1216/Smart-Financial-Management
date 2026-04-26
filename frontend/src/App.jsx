@@ -44,7 +44,6 @@ const App = () => {
   const [newEntry, setNewEntry] = useState({ title: '', amount: '', type: 'Expense', category: 'General' });
   const [tempLimit, setTempLimit] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("All");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
 
@@ -52,7 +51,6 @@ const App = () => {
   const [savingsGoal] = useState({ name: "Emergency Fund", target: 50000 });
   
   const exploreHeroImg = "https://images.unsplash.com/photo-1593640495253-23196b27a87f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80";
-  const authBgImg = "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80";
 
   const loadTransactions = async (userId) => {
     try {
@@ -134,8 +132,11 @@ const App = () => {
   const totalIncome = transactions.filter(t => t.type === 'Income').reduce((a, b) => a + Number(b.amount), 0);
   const totalExpense = transactions.filter(t => t.type === 'Expense').reduce((a, b) => a + Number(b.amount), 0);
   const balance = totalIncome - totalExpense;
-  const savingsProgress = Math.min((balance / savingsGoal.target) * 100, 100);
   const predictedSpend = (totalExpense / (new Date().getDate() || 1)) * 30;
+  
+  // Budget Alert Logic
+  const budgetLimit = user?.budget_limit || 10000;
+  const expensePercentage = Math.min((totalExpense / budgetLimit) * 100, 100);
 
   const filteredTransactions = transactions.filter(t => 
     t.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -174,7 +175,8 @@ const App = () => {
         <nav style={styles.navbar}>
           <h2 style={{ color: '#6366f1', margin: 0 }}>FinTrace</h2>
           <div style={{ display: 'flex', gap: '30px', fontWeight: '500' }}>
-            <span style={{cursor: 'pointer'}} onClick={() => window.scrollTo({top: 800, behavior: 'smooth'})}>Features</span>
+            <span style={{cursor: 'pointer'}} onClick={() => window.scrollTo({top: 850, behavior: 'smooth'})}>Features</span>
+            <span style={{cursor: 'pointer'}} onClick={() => window.scrollTo({top: 1600, behavior: 'smooth'})}>How it Works</span>
             <span style={{cursor: 'pointer'}} onClick={() => setView('login')}>Login</span>
           </div>
           <button style={styles.btn} onClick={() => setView('register')}>Start Tracking</button>
@@ -198,28 +200,61 @@ const App = () => {
         <section style={styles.section}>
           <h2 style={{textAlign: 'center', fontSize: '32px', marginBottom: '50px'}}>Why Choose FinTrace?</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
-            <div style={styles.card} onMouseOver={e => e.currentTarget.style.transform='translateY(-10px)'} onMouseOut={e => e.currentTarget.style.transform='translateY(0)'}>
+            <div style={styles.card}>
               <h3 style={{color: '#6366f1'}}>Real-time Sync</h3>
               <p style={{color: '#94a3b8'}}>Your data is always up-to-date across all your devices instantly.</p>
             </div>
-            <div style={styles.card} onMouseOver={e => e.currentTarget.style.transform='translateY(-10px)'} onMouseOut={e => e.currentTarget.style.transform='translateY(0)'}>
+            <div style={styles.card}>
               <h3 style={{color: '#6366f1'}}>AI Analytics</h3>
               <p style={{color: '#94a3b8'}}>Predict your monthly spending based on past habits using our smart engine.</p>
             </div>
-            <div style={styles.card} onMouseOver={e => e.currentTarget.style.transform='translateY(-10px)'} onMouseOut={e => e.currentTarget.style.transform='translateY(0)'}>
+            <div style={styles.card}>
               <h3 style={{color: '#6366f1'}}>Privacy First</h3>
               <p style={{color: '#94a3b8'}}>Military-grade encryption for your financial peace of mind.</p>
             </div>
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section style={{...styles.section, background: '#0f172a', textAlign: 'center'}}>
-           <div style={{display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '30px'}}>
-              <div><h2 style={{fontSize: '40px', color: '#6366f1'}}>10K+</h2><p>Active Users</p></div>
-              <div><h2 style={{fontSize: '40px', color: '#6366f1'}}>₹50Cr+</h2><p>Tracked Monthly</p></div>
-              <div><h2 style={{fontSize: '40px', color: '#6366f1'}}>99.9%</h2><p>Uptime</p></div>
-           </div>
+        {/* How It Works Section */}
+        <section style={{...styles.section, background: '#0f172a', borderRadius: '30px'}}>
+          <h2 style={{textAlign: 'center', fontSize: '32px', marginBottom: '50px'}}>How it Works</h2>
+          <div style={{display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '20px', textAlign: 'center'}}>
+            <div style={{maxWidth: '250px'}}>
+              <div style={{fontSize: '30px', color: '#6366f1'}}>1</div>
+              <h3>Connect</h3>
+              <p>Sign up and securely set your budget limits.</p>
+            </div>
+            <div style={{maxWidth: '250px'}}>
+              <div style={{fontSize: '30px', color: '#6366f1'}}>2</div>
+              <h3>Track</h3>
+              <p>Add your daily expenses and income in seconds.</p>
+            </div>
+            <div style={{maxWidth: '250px'}}>
+              <div style={{fontSize: '30px', color: '#6366f1'}}>3</div>
+              <h3>Analyze</h3>
+              <p>Get visual reports and save more money.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials */}
+        <section style={styles.section}>
+          <h2 style={{textAlign: 'center', fontSize: '32px', marginBottom: '50px'}}>User Stories</h2>
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px'}}>
+             <div style={styles.card}>"This app changed my saving habits. Highly recommended!" - Harsh K.</div>
+             <div style={styles.card}>"The UI is so clean and easy to use." - Anjali S.</div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section style={{...styles.section, marginBottom: '50px'}}>
+          <h2 style={{textAlign: 'center', fontSize: '32px', marginBottom: '50px'}}>Common Questions</h2>
+          <div style={{maxWidth: '800px', margin: '0 auto'}}>
+            <details style={{marginBottom: '15px', padding: '15px', border: '1px solid #1f2937', borderRadius: '10px'}}>
+              <summary style={{cursor: 'pointer', fontWeight: 'bold'}}>Is my data safe?</summary>
+              <p style={{marginTop: '10px', color: '#94a3b8'}}>Yes, we use industry-standard encryption to protect your records.</p>
+            </details>
+          </div>
         </section>
 
         <footer style={{padding: '50px', textAlign: 'center', borderTop: '1px solid #1f2937'}}>
@@ -245,6 +280,7 @@ const App = () => {
             <p onClick={() => setView(view === 'login' ? 'register' : 'login')} style={{ textAlign: 'center', cursor: 'pointer', marginTop: '20px', color: '#94a3b8' }}>
                 {view === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Login"}
             </p>
+            <button onClick={() => setView('explore')} style={{width: '100%', background: 'none', border: 'none', color: '#6366f1', marginTop: '15px', cursor: 'pointer'}}>Back to Home</button>
           </div>
         </div>
       </div>
@@ -273,6 +309,31 @@ const App = () => {
                 <h1 style={{ margin: 0, color: balance >= 0 ? '#10b981' : '#ef4444' }}>₹{balance}</h1>
               </div>
             </header>
+
+            {/* --- Smart Budget Tracker (Budget Visualizer) --- */}
+            <div style={{ ...styles.card, marginBottom: '40px', border: expensePercentage > 80 ? '1px solid #ef4444' : '1px solid #1f2937' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <h3 style={{ margin: 0 }}>Monthly Budget Tracker</h3>
+                <span style={{ color: expensePercentage > 80 ? '#ef4444' : '#6366f1', fontWeight: 'bold' }}>
+                  {expensePercentage.toFixed(1)}% Used
+                </span>
+              </div>
+              <div style={{ width: '100%', height: '12px', background: '#1f2937', borderRadius: '10px', overflow: 'hidden' }}>
+                <div style={{ 
+                  width: `${expensePercentage}%`, height: '100%', 
+                  background: expensePercentage > 80 ? '#ef4444' : '#6366f1',
+                  transition: 'width 0.5s ease-in-out'
+                }}></div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                <small style={{ color: '#94a3b8' }}>Limit: ₹{budgetLimit}</small>
+                {expensePercentage > 80 && <small style={{ color: '#ef4444', fontWeight: 'bold' }}>⚠️ Warning: Almost at limit!</small>}
+              </div>
+              <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+                <input type="number" placeholder="New Limit" style={{ ...styles.input, marginBottom: 0, flex: 1 }} value={tempLimit} onChange={(e) => setTempLimit(e.target.value)} />
+                <button style={styles.btn} onClick={handleUpdateBudget}>Update</button>
+              </div>
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '40px' }}>
               <div style={styles.card}><span>Monthly Income</span><h2 style={{color: '#10b981'}}>₹{totalIncome}</h2></div>
