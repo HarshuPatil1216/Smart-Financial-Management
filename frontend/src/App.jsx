@@ -307,19 +307,28 @@ const styles = {
               <div style={styles.commonCard}><span>Expenses</span><h2 style={{color: '#ef4444'}}>₹{totalExpense}</h2></div>
             </div>
             {/* Pie Chart */}
-            <div style={styles.commonCard}>
-              <h3>Income vs Expense Split</h3>
-              <div style={{ height: '300px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={[{name:'In', value:totalIncome}, {name:'Out', value:totalExpense}]} dataKey="value" innerRadius={60} outerRadius={100} paddingAngle={5}>
-                      <Cell fill="#10b981" /><Cell fill="#ef4444" />
-                    </Pie><Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
+            {/* --- चार्टचा भाग --- */}
+<div style={styles.commonCard}>
+  <h3>Income vs Expense Split</h3>
+  {/* इथे उंची ३०० पिक्सेल फिक्स करा */}
+  <div style={{ height: '300px', width: '100%' }}> 
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie 
+          data={[{name:'In', value:totalIncome}, {name:'Out', value:totalExpense}]} 
+          dataKey="value" 
+          innerRadius={60} 
+          outerRadius={100} 
+          paddingAngle={5}
+        >
+          <Cell fill="#10b981" />
+          <Cell fill="#ef4444" />
+        </Pie>
+        <Tooltip />
+      </PieChart>
+    </ResponsiveContainer>
+  </div>
+</div>
         )}
 
         {/* --- Reports View (नवीन) --- */}
