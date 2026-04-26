@@ -9,14 +9,16 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     private String description;
     private double amount;
     private String type;
     private String category; // उदा. Food, Travel, Shopping
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "app_user_id") // 'user_id' ऐवजी 'app_user_id' करा
     private User user;
+
 
     public Transaction() {}
 

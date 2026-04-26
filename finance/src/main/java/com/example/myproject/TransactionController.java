@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "https://fintrace-new.vercel.app", allowCredentials = "true")
 public class TransactionController {
 
     @Autowired
