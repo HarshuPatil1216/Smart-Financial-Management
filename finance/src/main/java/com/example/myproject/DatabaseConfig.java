@@ -1,22 +1,22 @@
 package com.example.myproject;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConfig {
-    // Change 'finance_db' to your actual database name in pgAdmin
-    private static final String URL = "jdbc:postgresql://localhost:5432/finance";
-    private static final String USER = "postgres";
-    private static final String PASS = "1216";
+    // तुझा दिलेला नवीन Render PostgreSQL URL
+    private static final String URL = "jdbc:postgresql://dpg-d7mr2b8g4nts73aqb1t0-a.singapore-postgres.render.com/smart_finance_db_uetf";
+    private static final String USER = "harsh_admin";
+    private static final String PASS = "l6H27W4RudfAI9JJhuthzwIhViqSkNlG";
 
     public static Connection getConnection() throws SQLException {
         try {
-            // Loading the Driver (Required for some older versions of Java/PostgreSQL)
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        return DriverManager.getConnection(URL, USER, PASS);
+        // SSL मोड ऑन ठेवणे Render साठी गरजेचे असते
+        return DriverManager.getConnection(URL + "?sslmode=require", USER, PASS);
     }
 }
-
