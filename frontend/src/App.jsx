@@ -51,7 +51,7 @@ const App = () => {
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [appSettings, setAppSettings] = useState({ currency: 'INR (₹)', theme: 'Dark' });
-
+  const [isRegistering, setIsRegistering] = useState(false);
   // Backend URL - /api एकदाच वापरला आहे जेणेकरून कॉल करताना चुका होणार नाहीत
   const API_BASE_URL = "https://smart-finance-backend-knxx.onrender.com/api";
   const heroBackground = "https://images.unsplash.com/photo-1593640495253-23196b27a87f?auto=format&fit=crop&w=1471&q=80";
@@ -154,23 +154,66 @@ const App = () => {
       </div>
     );
   }
+const handleRegister = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const newUser = {
+      username: e.target.username.value,
+      password: e.target.password.value,
+      email: e.target.email.value,
+      budgetLimit: 5000.0 // Default limit
+    };
 
+    try {
+      const res = await axios.post(`${API_BASE_URL}/users/register`, newUser);
+      alert("Registration Successful! Please Login.");
+      setIsRegistering(false); // रजिस्ट्रेशन झाल्यावर लॉगिन पेजवर जा
+    } catch (err) {
+      alert("Registration Failed! Username might already exist.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // --- लॉगिन फॉर्ममध्ये बदल (Login View) ---
   if (view === 'login') {
     return (
       <div style={{ ...styles.mainWrapper, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div style={{ ...styles.commonCard, width: '380px' }}>
-          <h2 style={{ textAlign: 'center', color: '#6366f1' }}>Login</h2>
-          <form onSubmit={loginUser}>
+          <h2 style={{ textAlign: 'center', color: '#6366f1' }}>
+            {isRegistering ? "Create Account" : "Login"}
+          </h2>
+          
+          <form onSubmit={isRegistering ? handleRegister : loginUser}>
+            {isRegistering && (
+              <input name="email" type="email" style={styles.inputBox} placeholder="Email Address" required />
+            )}
             <input name="username" style={styles.inputBox} placeholder="Username" required />
             <input name="password" type="password" style={styles.inputBox} placeholder="Password" required />
-            <button type="submit" style={{ ...styles.primaryBtn, width: '100%' }}>{isSubmitting ? "Wait..." : "Login"}</button>
+            
+            <button type="submit" style={{ ...styles.primaryBtn, width: '100%' }}>
+              {isSubmitting ? "Processing..." : (isRegistering ? "Register" : "Login")}
+            </button>
           </form>
-          <p onClick={() => setView('explore')} style={{ textAlign: 'center', marginTop: '20px', cursor: 'pointer', color: '#94a3b8' }}>← Back</p>
+
+          <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.9rem' }}>
+            {isRegistering ? "Already have an account?" : "New user?"}{" "}
+            <span 
+              onClick={() => setIsRegistering(!isRegistering)} 
+              style={{ color: '#6366f1', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              {isRegistering ? "Login here" : "Register now"}
+            </span>
+          </p>
+          
+          <p onClick={() => { setView('explore'); setIsRegistering(false); }} 
+             style={{ textAlign: 'center', marginTop: '10px', cursor: 'pointer', color: '#94a3b8', fontSize: '0.8rem' }}>
+            ← Back to Home
+          </p>
         </div>
       </div>
     );
   }
-
   return (
     <div style={{ ...styles.mainWrapper, display: 'flex' }}>
       <aside style={styles.sidePanel}>
