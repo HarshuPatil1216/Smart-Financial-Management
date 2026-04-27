@@ -9,7 +9,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/users")
 // CORS '*' केल्यामुळे Vercel वरून येणाऱ्या सर्व रिक्वेस्ट स्वीकारल्या जातील
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class UserController {
 
     @Autowired

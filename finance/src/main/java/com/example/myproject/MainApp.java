@@ -7,6 +7,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import java.util.Arrays;
+import java.util.Collections;
 
 @SpringBootApplication
 public class MainApp {
@@ -23,14 +24,17 @@ public class MainApp {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // तुमच्या फ्रंटएंडला परवानगी द्या
-        config.setAllowedOrigins(Arrays.asList("https://fintrace-new.vercel.app"));
+        // १. 'setAllowedOrigins' ऐवजी 'setAllowedOriginPatterns' वापरा
+        // यामुळे credentials true असतानाही कोणतीही Error येत नाही
+        config.setAllowedOriginPatterns(Collections.singletonList("*"));
 
-        // सर्व महत्त्वाचे हेडर्स आणि मेथड्सना परवानगी द्या
+        // २. सर्व मेथड्सना परवानगी (GET, POST, इ.)
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // ३. सर्व हेडर्सना परवानगी
         config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"));
 
-        // क्रेडेंशियल्सना (Cookies/Auth) परवानगी द्या
+        // ४. क्रेडेंशियल्सना (Cookies/Auth) परवानगी द्या
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
